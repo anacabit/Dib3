@@ -37,11 +37,9 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none;background:#7
 #canvas-area{flex:1;position:relative;overflow:hidden;background:#777;display:flex;align-items:center;justify-content:center;}
 #sheet-wrap{position:relative;background:#fff;box-shadow:0 4px 28px #0006;}
 
-/* CAPAS — orden z correcto */
-/* z1=marco  z2=pintura  z3=stickers */
-#frame-canvas{position:absolute;top:0;left:0;width:100%;height:100%;z-index:1;pointer-events:none;}
-#paint-canvas{position:absolute;top:0;left:0;z-index:2;touch-action:none;cursor:crosshair;}
-#sticker-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:3;pointer-events:none;}
+/* CAPAS */
+#paint-canvas{position:absolute;top:0;left:0;z-index:1;touch-action:none;cursor:crosshair;}
+#sticker-layer{position:absolute;top:0;left:0;width:100%;height:100%;z-index:2;pointer-events:none;}
 
 /* STICKERS */
 .sticker{position:absolute;pointer-events:all;touch-action:none;user-select:none;}
@@ -129,7 +127,6 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none;background:#7
   <div id="hdr-btns">
     <button class="hbtn red" id="btn-sin-ico">🗂️ Sin íconos</button>
     <button class="hbtn red" id="btn-todo">🗑️ Todo</button>
-    <button class="hbtn" id="btn-marco">🖼️ Marco</button>
     <button class="hbtn" id="btn-guardar">💾 Guardar</button>
   </div>
 </header>
@@ -141,7 +138,6 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none;background:#7
   <div id="canvas-area">
     <div id="sheet-wrap">
       <!-- z1: marco (detrás, no bloquea eventos) -->
-      <canvas id="frame-canvas"></canvas>
       <!-- z2: pintura -->
       <canvas id="paint-canvas"></canvas>
       <!-- z3: stickers (adelante) -->
@@ -166,24 +162,6 @@ html,body{width:100%;height:100%;overflow:hidden;touch-action:none;background:#7
     <div id="pal-top">
       <canvas id="bprev" width="36" height="18"></canvas>
       <div id="palette"></div>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL MARCO -->
-<div class="modal-bg" id="fm-bg">
-  <div class="modal-box">
-    <h2>🖼️ Marco decorativo</h2>
-    <div class="mdots" id="fm-dots"></div>
-    <div class="mrow">
-      <label>Grosor</label>
-      <input type="range" class="mslider" id="fw" min="6" max="80" value="26">
-      <span class="mval" id="fw-v">26</span>
-    </div>
-    <div id="fm-prev"><div id="fm-prev-in"></div></div>
-    <div class="mbtns">
-      <button class="mbtn cancel" id="fm-cancel">Cancelar</button>
-      <button class="mbtn ok" id="fm-ok">✨ Aplicar</button>
     </div>
   </div>
 </div>
@@ -256,7 +234,15 @@ const LU={
   cat:["M12 5c.67 0 1.35.09 2 .26 1.78-2 5.03-2.84 6.42-2.26 1.4.58-.42 7-.42 7 .57 1.07 1 2.24 1 3.44C21 17.9 16.97 21 12 21s-9-3.1-9-7.56c0-1.2.43-2.37 1-3.44 0 0-1.89-6.42-.42-7 1.46-.58 4.79.23 6.42 2.26C11.2 5.09 11.6 5 12 5Z","M8 14v.5","M16 14v.5","M11.25 16.25h1.5L12 17l-.75-.75Z"],
   fish:["M6.5 12c.94-3.46 4.94-6 8.5-6 3.56 0 6.06 2.54 7 6-.94 3.47-3.44 6-7 6s-7.56-2.54-8.5-6Z","M18 12v.5","M16 17.51l.5-2.5","M16 6.99l-.5 2.51","M2 12h1.5a2.5 2.5 0 0 0 0-5H2"],
   bird:["M16 7h.01","M3.4 18H12a8 8 0 0 0 8-8V7a4 4 0 0 0-7.28-2.3L2 20","M10 18v4","M14 18v4","M12 5v2"],
-  
+  rabbit:["M20 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C4.1 3.75 2 5.765 2 8.25c0 7.22 9 12 10 12s10-4.78 10-12Z","M12 8a2 2 0 0 0 0 4 2 2 0 0 0 0-4Z","M8 16.5h8"],
+  squirrel:["M15.236 22a3 3 0 0 0-2.2-5","M16 20a3 3 0 0 1 3-3h1a2 2 0 0 0 2-2v-2a4 4 0 0 0-4-4V4","M18 13h.01","M18 6a4 4 0 0 1 0 8 4 4 0 0 0-4 4","M2 8c0-1.5 1.5-3 4-3a7 7 0 0 0 7 7 1 1 0 0 1 1 1","M3.5 11c1.5 0 3 .5 3 2"],
+  turtle:["M12 11c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4Z","M12 11V7","M12 7c0-2.21-1.79-4-4-4S4 4.79 4 7s1.79 4 4 4","M12 7c0-2.21 1.79-4 4-4s4 2.79 4 4-1.79 4-4 4","M5 15H3","M21 15h-2","M12 19v2"],
+  frog:["M12 22c4.97 0 9-2.69 9-6s-4.03-6-9-6-9 2.69-9 6 4.03 6 9 6Z","M9 11c.34-1.16 1.54-2 3-2s2.66.84 3 2","M7 8.37C5.83 7.49 5 6.27 5 4.9 5 3.3 6.12 2 7.5 2c.94 0 1.76.52 2.2 1.3","M17 8.37C18.17 7.49 19 6.27 19 4.9c0-1.6-1.12-2.9-2.5-2.9-.94 0-1.76.52-2.2 1.3","M9 16c.5.5 1.56 1 3 1s2.5-.5 3-1"],
+  apple:["M12 20.94c1.5 0 3.75-6 3.75-10.94a3.75 3.75 0 0 0-7.5 0c0 4.94 2.25 10.94 3.75 10.94Z","M12 20.94c-1.5 0-3.75-6-3.75-10.94","M12 10V6","M12 6c0-1.5 1-3 2-3"],
+  cherry:["M2 17a5 5 0 0 1 10 0c0 1.7-1 3-2 4H4c-1-1-2-2.3-2-4Z","M12 17a5 5 0 0 1 10 0c0 1.7-1 3-2 4h-6c-1-1-2-2.3-2-4Z","M7 14c0-1.67 1.33-3 3-3s3 1.33 3 3","M17 14c0-1.67 1.33-3 3-3s3 1.33 3 3","M8 6a4 4 0 0 1 8 0","M12 2v4"],
+  grape:["M22 5c0 3.87-3.13 7-7 7H9.05C6.22 12 4 14.22 4 17.05V17a5 5 0 0 1-2-4c0-2.76 2.24-5 5-5h2a7 7 0 0 1 7-7c2.76 0 5 2.24 5 5Z","M12 17a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z","M7 17a5 5 0 1 0 10 0 5 5 0 0 0-10 0Z"],
+  carrot:["M2.27 21.7s9.87-3.5 13.16-6.79c3.29-3.29 2.05-8.65-1.24-11.94-3.29-3.29-8.65-4.53-11.94-1.24C-1.04 4.99 2.27 21.7 2.27 21.7Z","M8.64 13.36l-6.72 6.72"],
+};
 
 function mkLuSVG(name,sz){
   const paths=LU[name]||[];
@@ -271,15 +257,17 @@ function mkSVG(paths,sz){
 const SECTIONS=[
 {s:'Animales Lucide',list:[
   {l:'Perro',lu:'dog'},{l:'Gato',lu:'cat'},{l:'Pez',lu:'fish'},{l:'Pájaro',lu:'bird'},
-
+  ]},
 {s:'Animales',list:[
   {l:'Elefante',p:['M6 20C6 16 8 14 11 14L11 12C11 9 13 8 16 8C19 8 22 9 22 12L22 14C25 14 27 16 27 20L27 26L6 26Z','M11 14L9 18L8 26','M22 14L24 18L25 26','M11 12C10 10 8 9 7 11C6 13 8 15 11 14','M22 12C23 10 25 9 26 11C27 13 25 15 22 14','M16 14C15 14 14 15 13 18C12 20 13 22 14 21','M13 11C13 10 14 10 14 11','M18 11C18 10 19 10 19 11']},
-  {l:'León',p:['M16 9C10 9 6 13 6 18C6 23 10 27 16 27C22 27 26 23 26 18C26 13 22 9 16 9Z','M16 6C12 6 8 8 7 12','M16 6C20 6 24 8 25 12','M12 17C12 16 13 16 13 17M19 17C19 16 20 16 20 17','M15 20L17 20M16 20L16 21','M14 22Q16 24 18 22']},
-  {l:'Jirafa',p:['M13 26L13 12C13 10 14 9 15 9L17 9C18 9 19 10 19 12L19 26','M13 9C13 6 19 6 19 9','M15 6C15 4 17 4 17 6','M14 7C14 6.5 15 6.5 15 7','M14 13C13 13 13 15 14 15C15 15 15 13 14 13Z','M17 17C16 17 16 19 17 19C18 19 18 17 17 17Z','M13 26L12 30M19 26L20 30']},
+        {l:'Búho',p:['M9 14L9 26L23 26L23 14','M9 14C9 9 12 7 16 7C20 7 23 9 23 14','M11 9L9 6L13 8','M21 9L23 6L19 8','M12 13C10 13 9 14 9 16C9 18 10 19 12 19C14 19 15 18 15 16C15 14 14 13 12 13Z','M20 13C18 13 17 14 17 16C17 18 18 19 20 19C22 19 23 18 23 16C23 14 22 13 20 13Z','M11 16C11 15 12 15 12 16','M19 16C19 15 20 15 20 16','M15 18L16 20L17 18']},
+  {l:'Pato',p:['M8 20C8 16 10 14 14 14C18 14 22 16 22 20C22 24 18 27 14 27C10 27 8 24 8 20Z','M14 14C14 10 16 8 19 8C22 8 24 10 24 14C24 16 22 17 20 17L14 16','M20 10C20 9.5 21 9.5 21 10','M24 12L28 12L28 14L24 14','M13 27L11 30L15 30']},
+]},
+{s:'Frutas Lucide',list:[
+    ]},
 {s:'Frutas',list:[
-  {l:'Sandía',p:['M5 19C5 13 10 7 16 7C22 7 27 13 27 19Z','M5 19L27 19','M5 19C5 22 10 25 16 25C22 25 27 22 27 19','M10 17L11 18M15 14L16 15M20 17L21 18']},
-  {l:'Fresa',p:['M16 27C16 27 8 21 8 14C8 10 11 8 14 9C14 8 15 7 16 7C17 7 18 8 18 9C21 8 24 10 24 14C24 21 16 27 16 27Z','M12 9C12 7 13 5 16 6C19 5 20 7 20 9','M12 15L12 16M16 13L16 14M20 15L20 16M13 19L13 20M19 19L19 20']},
-  {l:'Pera',p:['M16 9C14 9 13 11 13 13C11 14 9 17 9 20C9 24 12 28 16 28C20 28 23 24 23 20C23 17 21 14 19 13C19 11 18 9 16 9Z','M16 9L16 6C17 5 19 4 20 5']},
+    {l:'Fresa',p:['M16 27C16 27 8 21 8 14C8 10 11 8 14 9C14 8 15 7 16 7C17 7 18 8 18 9C21 8 24 10 24 14C24 21 16 27 16 27Z','M12 9C12 7 13 5 16 6C19 5 20 7 20 9','M12 15L12 16M16 13L16 14M20 15L20 16M13 19L13 20M19 19L19 20']},
+        {l:'Pera',p:['M16 9C14 9 13 11 13 13C11 14 9 17 9 20C9 24 12 28 16 28C20 28 23 24 23 20C23 17 21 14 19 13C19 11 18 9 16 9Z','M16 9L16 6C17 5 19 4 20 5']},
 ]},
 {s:'Naturaleza',list:[
   {l:'Sol',p:['M16 9C12.5 9 10 12 10 16C10 20 12.5 23 16 23C19.5 23 22 20 22 16C22 12 19.5 9 16 9Z','M16 3L16 6M16 26L16 29M3 16L6 16M26 16L29 16','M7 7L9 9M23 23L25 25M25 7L23 9M9 23L7 25']},
@@ -304,12 +292,14 @@ const SECTIONS=[
   {l:'Globo',p:['M16 4C11 4 7 8 7 13C7 18 10 21 14 22L16 28L18 22C22 21 25 18 25 13C25 8 21 4 16 4Z','M14 22L18 22','M11 10C13 8 19 8 21 10']},
 ]},
 {s:'Objetos',list:[
-
+  {l:'Peluche',p:['M10 11C9 8 7 7 7 9C7 11 9 13 11 13','M22 11C23 8 25 7 25 9C25 11 23 13 21 13','M11 13C10 14 9 16 9 18L9 22C9 24 12 26 16 26C20 26 23 24 23 22L23 18C23 16 22 14 21 13C19 11 13 11 11 13Z','M13 17C13 16 14.5 16 14.5 17C14.5 18 13 18 13 17','M19 17C19 16 17.5 16 17.5 17C17.5 18 19 18 19 17','M14 20Q16 22 18 20']},
   {l:'Pelota',p:['M16 5C10 5 5 10 5 16C5 22 10 27 16 27C22 27 27 22 27 16C27 10 22 5 16 5Z','M7 11C10 13 14 13 16 11C18 9 20 9 23 11','M7 21C10 19 14 19 16 21C18 23 20 23 23 21','M16 5L16 27M5 16L27 16']},
   {l:'Estrella',p:['M16 3L19 11L28 11L21 17L24 25L16 20L8 25L11 17L4 11L13 11Z']},
   {l:'Corazón',p:['M16 26C16 26 4 18 4 11C4 7 7 4 11 4C13.5 4 15.5 5.5 16 7C16.5 5.5 18.5 4 21 4C25 4 28 7 28 11C28 18 16 26 16 26Z']},
   {l:'Pincel',p:['M22 4L28 10L13 23L9 19Z','M9 19L7 25L13 23','M4 28C4 28 6.5 27 7 25']},
   {l:'Paleta',p:['M7 16C7 11 11 7 16 7C21 7 25 11 25 16C25 21 21 24 18 24C16 24 16 22 18 21C19 20 18 18 16 18C14 18 13 19 13 21C12 22 9 21 9 19C8 18 7 17 7 16Z','M11 14C11 13 12 13 12 14C12 15 11 15 11 14Z','M15 10C15 9 16 9 16 10C16 11 15 11 15 10Z','M20 12C20 11 21 11 21 12C21 13 20 13 20 12Z']},
+  {l:'Paraguas',p:['M16 5C9 5 4 10 4 16L28 16C28 10 23 5 16 5Z','M10 16C10 16 10 22 12 24C14 26 15 24 16 22C17 24 18 26 20 24C22 22 22 16 22 16','M16 5L16 16','M16 3C17 2 18 3 17 4']},
+]},
 {s:'Formas',list:[
   {l:'Círculo',p:['M16 5C10 5 5 10 5 16C5 22 10 27 16 27C22 27 27 22 27 16C27 10 22 5 16 5Z']},
   {l:'Cuadrado',p:['M5 5L27 5L27 27L5 27Z']},
@@ -334,7 +324,6 @@ const SECTIONS=[
 let color=COLORS[0], brushSz=10, eraser=false;
 let painting=false, lx=0, ly=0;
 let selIcon=null;
-let fColor='#6C3FC8', fWidth=26;
 let SW=300, SH=300;
 let ltText='', ltDir='h', ltFontSz=48;
 
@@ -344,15 +333,11 @@ function layout(){
   SW=Math.floor(R.width); SH=Math.floor(R.height);
   const wrap=document.getElementById('sheet-wrap');
   wrap.style.width=SW+'px'; wrap.style.height=SH+'px';
-  // Ambos canvas mismas dimensiones
-  ['paint-canvas','frame-canvas'].forEach(id=>{
-    const c=document.getElementById(id);
-    c.style.width=SW+'px'; c.style.height=SH+'px';
-    if(!window._init){ c.width=SW; c.height=SH; }
-  });
-  if(!window._init){
-    const ctx=document.getElementById('paint-canvas').getContext('2d');
-    ctx.fillStyle='#fff'; ctx.fillRect(0,0,SW,SH);
+  const pc=document.getElementById('paint-canvas');
+  pc.style.width=SW+'px'; pc.style.height=SH+'px';
+  if(!window._init){ pc.width=SW; pc.height=SH;
+    pc.getContext('2d').fillStyle='#fff';
+    pc.getContext('2d').fillRect(0,0,SW,SH);
     window._init=true;
   }
 }
@@ -565,71 +550,12 @@ document.getElementById('btn-todo').addEventListener('click',()=>{
   pc.getContext('2d').fillStyle='#fff'; pc.getContext('2d').fillRect(0,0,pc.width,pc.height);
   document.getElementById('sticker-layer').innerHTML='';
   // Borrar marco
-  const fc=document.getElementById('frame-canvas');
-  fc.getContext('2d').clearRect(0,0,fc.width,fc.height);
-  toast('Hoja nueva ✨');
+    toast('Hoja nueva ✨');
 });
 
-// ═══ MARCO — dibujado en frame-canvas (z-index:1, pointer-events:none) ═══
-// El sticker-layer (z3) y paint-canvas (z2) quedan ENCIMA → siguen recibiendo eventos
-const FCOLS=['#FF3B30','#FF9500','#FFCC00','#34C759','#007AFF','#6C3FC8','#FF2D55','#8B4513','#FF6B00','#5AC8FA','#FFD700','#1C1C1E'];
-function buildMarcoModal(){
-  const fd=document.getElementById('fm-dots');
-  FCOLS.forEach((c,i)=>{
-    const d=document.createElement('div'); d.className='fmd'+(i===5?' sel':''); d.style.background=c;
-    if(i===5) fColor=c;
-    d.addEventListener('click',()=>{ fColor=c; document.querySelectorAll('.fmd').forEach(b=>b.classList.remove('sel')); d.classList.add('sel'); updPrev(); });
-    fd.appendChild(d);
-  });
-  document.getElementById('fw').addEventListener('input',e=>{ fWidth=+e.target.value; document.getElementById('fw-v').textContent=fWidth; updPrev(); });
-  updPrev();
-}
-function updPrev(){
-  const pv=document.getElementById('fm-prev'); pv.style.background=fColor;
-  const inn=document.getElementById('fm-prev-in');
-  const W=pv.clientWidth||200, H=pv.clientHeight||54;
-  const ratio=fWidth/Math.min(SW||300,SH||300);
-  const fw=Math.max(4,Math.round(ratio*Math.min(W,H)));
-  inn.style.cssText=`position:absolute;background:#fff;left:${fw}px;top:${fw}px;right:${fw}px;bottom:${fw}px;border-radius:2px;`;
-}
-document.getElementById('btn-marco').addEventListener('click',()=>{ document.getElementById('fm-bg').classList.add('open'); updPrev(); });
-document.getElementById('fm-cancel').addEventListener('click',()=>document.getElementById('fm-bg').classList.remove('open'));
-document.getElementById('fm-ok').addEventListener('click',()=>{ document.getElementById('fm-bg').classList.remove('open'); applyFrame(); });
 
-function applyFrame(){
-  const fc=document.getElementById('frame-canvas');
-  fc.width=SW; fc.height=SH; // asegurar dimensiones
-  const ctx=fc.getContext('2d');
-  const W=SW, H=SH, fw=fWidth;
-  ctx.clearRect(0,0,W,H);
-  // Dibujar marco sólido con hueco interior transparente
-  ctx.save();
-  ctx.fillStyle=fColor;
-  rrect(ctx,0,0,W,H,12); ctx.fill();
-  ctx.globalCompositeOperation='destination-out';
-  rrect(ctx,fw,fw,W-fw*2,H-fw*2,6); ctx.fill();
-  ctx.restore();
-  // Líneas decorativas
-  ctx.save();
-  ctx.strokeStyle='rgba(255,255,255,.5)'; ctx.lineWidth=2.5; ctx.lineCap='round';
-  rrect(ctx,fw-5,fw-5,W-(fw-5)*2,H-(fw-5)*2,9); ctx.stroke();
-  ctx.strokeStyle='rgba(0,0,0,.1)'; ctx.lineWidth=1.8;
-  rrect(ctx,fw+4,fw+4,W-(fw+4)*2,H-(fw+4)*2,5); ctx.stroke();
-  ctx.restore();
-  // Ornamentos de esquina
-  [[fw,fw,1,1],[W-fw,fw,-1,1],[fw,H-fw,1,-1],[W-fw,H-fw,-1,-1]].forEach(([cx,cy,sx,sy])=>{
-    ctx.save(); ctx.translate(cx,cy); ctx.scale(sx,sy);
-    ctx.strokeStyle='rgba(255,255,255,.65)'; ctx.lineWidth=2.5; ctx.lineCap='round';
-    ctx.beginPath(); ctx.moveTo(0,-14); ctx.lineTo(0,-4); ctx.moveTo(-14,0); ctx.lineTo(-4,0); ctx.stroke();
-    ctx.restore();
-  });
-  toast('¡Marco aplicado! Puedes seguir dibujando 🖼️');
-}
 
-function rrect(ctx,x,y,w,h,r){
-  if(w<r*2) r=w/2; if(h<r*2) r=h/2; if(w<=0||h<=0) return;
-  ctx.beginPath(); ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r); ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h); ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r); ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y); ctx.closePath();
-}
+
 
 // ═══ LETRAS ═══
 function buildLetrasModal(){
@@ -704,9 +630,6 @@ document.getElementById('save-ok').addEventListener('click',async()=>{
   const off=document.createElement('canvas'); off.width=PW; off.height=PH;
   const ctx=off.getContext('2d');
   ctx.fillStyle='#fff'; ctx.fillRect(0,0,PW,PH);
-  // Marco primero (detrás)
-  const fc=document.getElementById('frame-canvas');
-  ctx.save(); ctx.scale(scX,scY); ctx.drawImage(fc,0,0); ctx.restore();
   // Pintura
   ctx.save(); ctx.scale(scX,scY); ctx.drawImage(document.getElementById('paint-canvas'),0,0); ctx.restore();
   // Stickers e imágenes
@@ -736,7 +659,7 @@ document.getElementById('save-ok').addEventListener('click',async()=>{
 function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2800); }
 
 // ═══ INIT ═══
-window.addEventListener('DOMContentLoaded',()=>{ layout(); buildSidebar(); buildPalette(); buildMarcoModal(); initPaint(); drawPrev(); });
+window.addEventListener('DOMContentLoaded',()=>{ layout(); buildSidebar(); buildPalette(); initPaint(); drawPrev(); });
 window.addEventListener('resize',layout);
 </script>
 </body>
